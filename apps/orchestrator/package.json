@@ -1,0 +1,29 @@
+{
+  "name": "@agent-bazaar/orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx --watch src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@agent-bazaar/common": "*",
+    "@agent-bazaar/bazaar-client": "*",
+    "@x402/core": "2.8.0",
+    "@x402/express": "2.8.0",
+    "@x402/fetch": "2.8.0",
+    "@x402/stellar": "2.8.0",
+    "express": "^5.1.0",
+    "openai": "^4.85.0",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17"
+  }
+}
