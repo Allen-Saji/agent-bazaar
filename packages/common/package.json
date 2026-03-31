@@ -1,0 +1,23 @@
+{
+  "name": "@agent-bazaar/common",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^14.6.1",
+    "@x402/core": "2.8.0",
+    "@x402/express": "2.8.0",
+    "@x402/fetch": "2.8.0",
+    "@x402/stellar": "2.8.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "@types/node": "^22.0.0"
+  }
+}
