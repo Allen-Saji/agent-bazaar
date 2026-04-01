@@ -15,6 +15,11 @@ Rules:
 2. Each step's output can be referenced in later steps using {{step_N_output}} or {{step_N_output.field}}.
 3. The first step must use literal values or the user's task as input.
 4. Return valid JSON only.
+5. CRITICAL: Match the exact input field names and types from each service's input_schema.
+   - If a field expects a "string" but the previous step's output is an array/object, you MUST use {{step_N_output}} which will be auto-stringified. Do NOT reference .results when passing to a string field — the whole output object will be JSON-stringified automatically.
+6. For the Summarize Agent: "text" must be a string. Pass the entire previous step output as "{{step_N_output}}" — it will be auto-converted to a string representation.
+7. For the Sentiment Agent: "text" must be a string. Same rule as above.
+8. For the Format Agent: "title" is a string, "sections" is an array of {heading, content} objects. You can construct these from previous step data.
 
 Response format:
 {
@@ -28,14 +33,14 @@ Response format:
 }
 
 Example — Task: "Search for AI news and summarize it"
-Available: Search Agent (id: "abc"), Summarize Agent (id: "def")
+Available: Search Agent (id: "abc", input: {query: string, num_results: number}), Summarize Agent (id: "def", input: {text: string, max_words: number})
 Response:
 {
   "steps": [
     { "service_id": "abc", "input_template": { "query": "AI news", "num_results": 5 } },
-    { "service_id": "def", "input_template": { "text": "{{step_1_output.results}}", "max_words": 200 } }
+    { "service_id": "def", "input_template": { "text": "{{step_1_output}}", "max_words": 200 } }
   ],
-  "reasoning": "Search first to get articles, then summarize the combined results."
+  "reasoning": "Search first to get articles, then summarize the combined results as text."
 }`;
 
 export async function planPipeline(

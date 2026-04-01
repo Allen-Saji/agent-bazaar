@@ -89,7 +89,12 @@ function resolveStringTemplate(
   // Check if the entire string is a single template reference
   const fullMatch = template.match(/^\{\{(\w+(?:\.\w+)*)\}\}$/);
   if (fullMatch) {
-    return resolvePathFromOutputs(fullMatch[1], stepOutputs);
+    const val = resolvePathFromOutputs(fullMatch[1], stepOutputs);
+    // If the resolved value is an object/array, stringify it so it works as a string input
+    if (typeof val === "object" && val !== null) {
+      return JSON.stringify(val);
+    }
+    return val;
   }
 
   // Replace embedded template references within a larger string
