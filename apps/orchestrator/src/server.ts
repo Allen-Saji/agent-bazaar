@@ -58,7 +58,7 @@ async function startServer() {
             accepts: [
               {
                 scheme: "exact",
-                price: PRICES.ORCHESTRATOR,
+                price: "1.00", // ceiling — actual cost is dynamic per-request
                 network: NETWORK,
                 payTo: orchestratorAddress,
               },
@@ -179,11 +179,21 @@ async function startServer() {
 
       sendSSE(taskId, "plan_ready", pipelinePlan);
 
+      // Fallback finder for failed steps
+      const findFallbacks = async (category: string, excludeIds: string[]) => {
+        const all = await bazaarClient.discover({ category: category as never, healthy: true });
+        return all
+          .filter((s) => !excludeIds.includes(s.id))
+          .sort((a, b) => parseFloat(a.price_usd) - parseFloat(b.price_usd));
+      };
+
       // 3. Execute pipeline
       const { final_output, duration_ms } = await executePipeline(
         steps,
         fetchWithPay,
         (event, data) => sendSSE(taskId, event, data),
+        SERVICE_URLS.BAZAAR,
+        findFallbacks,
       );
 
       const result: PipelineResult = {
@@ -203,6 +213,44 @@ async function startServer() {
       const error = err instanceof Error ? err.message : "Unknown error";
       sendSSE(taskId, "step_failed", { error });
       res.status(500).json({ error, task_id: taskId });
+    }
+  });
+
+  // Non-paywalled: get a price quote before committing
+  app.post("/task/quote", async (req, res) => {
+    const { task } = req.body;
+
+    if (!task || typeof task !== "string") {
+      res.status(400).json({ error: "Missing required field: task" });
+      return;
+    }
+
+    try {
+      const catalog = await bazaarClient.discover({ healthy: true });
+      const demoAgents = catalog.filter(
+        (s) => s.source === "manual" && s.url.includes("localhost"),
+      );
+
+      if (demoAgents.length === 0) {
+        res.status(503).json({ error: "No agents available" });
+        return;
+      }
+
+      const plan = await planPipeline(task, demoAgents);
+      const steps = buildPipelineSteps(plan, demoAgents);
+      const costs = calculateCosts(steps);
+
+      res.json({
+        task,
+        steps: steps.length,
+        step_details: steps.map((s) => ({
+          service_name: s.service_name,
+          price_usd: s.price_usd,
+        })),
+        ...costs,
+      });
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
     }
   });
 

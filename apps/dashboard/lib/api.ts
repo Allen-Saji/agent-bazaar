@@ -20,6 +20,10 @@ export interface BazaarService {
   healthy: boolean;
   source: string;
   registered_at: string;
+  total_calls?: number;
+  successful_calls?: number;
+  failed_calls?: number;
+  avg_response_ms?: number;
 }
 
 export interface PipelineStep {
@@ -60,6 +64,19 @@ export async function fetchDiscover(params?: Record<string, string>): Promise<Ba
 
 export async function runTask(task: string): Promise<PipelineResult> {
   const res = await fetch(`${ORCHESTRATOR_URL}/task`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error((err as { error: string }).error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function quoteTask(task: string): Promise<{ steps: number; total_downstream_usd: string; orchestrator_fee_usd: string; user_price_usd: string }> {
+  const res = await fetch(`${ORCHESTRATOR_URL}/task/quote`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ task }),

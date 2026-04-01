@@ -109,6 +109,7 @@ export function buildPipelineSteps(
       path: service.path,
       method: service.method,
       price_usd: service.price_usd,
+      category: service.category,
       input: step.input_template,
       status: "pending" as const,
     };

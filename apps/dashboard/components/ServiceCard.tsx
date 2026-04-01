@@ -59,6 +59,23 @@ export function ServiceCard({ service }: { service: BazaarService }) {
         )}
       </div>
 
+      {/* Reputation */}
+      {(service.total_calls ?? 0) > 0 && (
+        <div className="flex items-center gap-3 mb-3 text-[10px] font-mono">
+          <span className="text-[var(--success)]">
+            {Math.round(((service.successful_calls ?? 0) / (service.total_calls ?? 1)) * 100)}% success
+          </span>
+          <span className="text-[var(--text-dim)]">/</span>
+          <span className="text-[var(--text-muted)]">
+            {service.total_calls} calls
+          </span>
+          <span className="text-[var(--text-dim)]">/</span>
+          <span className="text-[var(--text-muted)]">
+            {Math.round(service.avg_response_ms ?? 0)}ms avg
+          </span>
+        </div>
+      )}
+
       {/* Endpoint */}
       <div className="pt-3 border-t border-[var(--border)]">
         <code className="text-[10px] text-[var(--text-dim)] block truncate font-mono">

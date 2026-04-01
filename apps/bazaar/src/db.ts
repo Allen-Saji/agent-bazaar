@@ -46,6 +46,21 @@ function initSchema(): void {
     CREATE INDEX IF NOT EXISTS idx_services_healthy ON services(healthy);
     CREATE INDEX IF NOT EXISTS idx_services_price ON services(price_usd);
   `);
+
+  // Add reputation columns (idempotent — catch error if already exist)
+  const reputationColumns = [
+    "total_calls INTEGER NOT NULL DEFAULT 0",
+    "successful_calls INTEGER NOT NULL DEFAULT 0",
+    "failed_calls INTEGER NOT NULL DEFAULT 0",
+    "avg_response_ms REAL NOT NULL DEFAULT 0",
+  ];
+  for (const col of reputationColumns) {
+    try {
+      getDbRaw().exec(`ALTER TABLE services ADD COLUMN ${col}`);
+    } catch {
+      // Column already exists
+    }
+  }
 }
 
 function getDbRaw(): Database.Database {
@@ -173,4 +188,44 @@ export function updateHealthStatus(id: string, healthy: boolean): void {
       "UPDATE services SET healthy = ?, last_health_check = ? WHERE id = ?",
     )
     .run(healthy ? 1 : 0, new Date().toISOString(), id);
+}
+
+export function reportOutcome(
+  id: string,
+  success: boolean,
+  responseMs: number,
+): void {
+  getDb()
+    .prepare(
+      `UPDATE services SET
+        total_calls = total_calls + 1,
+        successful_calls = successful_calls + CASE WHEN ? THEN 1 ELSE 0 END,
+        failed_calls = failed_calls + CASE WHEN ? THEN 0 ELSE 1 END,
+        avg_response_ms = (avg_response_ms * total_calls + ?) / (total_calls + 1)
+      WHERE id = ?`,
+    )
+    .run(success ? 1 : 0, success ? 1 : 0, responseMs, id);
+}
+
+export interface ServiceReputation {
+  total_calls: number;
+  successful_calls: number;
+  failed_calls: number;
+  success_rate: number;
+  avg_response_ms: number;
+}
+
+export function getReputation(id: string): ServiceReputation | null {
+  const row = getDb()
+    .prepare(
+      "SELECT total_calls, successful_calls, failed_calls, avg_response_ms FROM services WHERE id = ?",
+    )
+    .get(id) as { total_calls: number; successful_calls: number; failed_calls: number; avg_response_ms: number } | undefined;
+
+  if (!row) return null;
+
+  return {
+    ...row,
+    success_rate: row.total_calls > 0 ? row.successful_calls / row.total_calls : 0,
+  };
 }

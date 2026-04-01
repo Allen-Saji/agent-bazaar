@@ -39,12 +39,14 @@ export interface PipelineStep {
   path: string;
   method: string;
   price_usd: string;
+  category?: string;
   input: Record<string, unknown>;
   output?: Record<string, unknown>;
   tx_hash?: string;
   status: "pending" | "running" | "completed" | "failed";
   error?: string;
   duration_ms?: number;
+  fallback_from?: string;
 }
 
 export interface PipelinePlan {
@@ -110,4 +112,17 @@ export interface DiscoverQuery {
 export interface TaskRequest {
   task: string;
   max_budget_usd?: string;
+}
+
+export interface ReputationReport {
+  success: boolean;
+  response_ms: number;
+}
+
+export interface ServiceReputation {
+  total_calls: number;
+  successful_calls: number;
+  failed_calls: number;
+  success_rate: number;
+  avg_response_ms: number;
 }
