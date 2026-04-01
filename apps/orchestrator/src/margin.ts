@@ -1,5 +1,6 @@
 import type { PipelineStep } from "@agent-bazaar/common";
-import { PRICES } from "@agent-bazaar/common";
+
+const MARKUP = parseFloat(process.env.ORCHESTRATOR_MARKUP || "0.30");
 
 export function calculateCosts(steps: PipelineStep[]): {
   total_downstream_usd: string;
@@ -11,12 +12,12 @@ export function calculateCosts(steps: PipelineStep[]): {
     0,
   );
 
-  const userPrice = parseFloat(PRICES.ORCHESTRATOR);
-  const fee = userPrice - downstream;
+  const fee = downstream * MARKUP;
+  const userPrice = downstream + fee;
 
   return {
-    total_downstream_usd: downstream.toFixed(2),
-    orchestrator_fee_usd: Math.max(0, fee).toFixed(2),
-    user_price_usd: userPrice.toFixed(2),
+    total_downstream_usd: downstream.toFixed(4),
+    orchestrator_fee_usd: fee.toFixed(4),
+    user_price_usd: userPrice.toFixed(4),
   };
 }
