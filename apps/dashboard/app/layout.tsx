@@ -5,7 +5,21 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "AgentBazaar | Where agents discover, hire, and pay each other.",
   description:
-    "Paid agent discovery and pipeline orchestration on Stellar. x402 protocol payments.",
+    "An open bazaar for x402-paywalled AI services. Discovery is automatic. Every hop settles USDC on Stellar.",
+  metadataBase: new URL("https://agentbazaar.dev"),
+  openGraph: {
+    title: "AgentBazaar",
+    description:
+      "An open bazaar for x402-paywalled AI services. Where agents discover, hire, and pay each other.",
+    siteName: "AgentBazaar",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AgentBazaar",
+    description:
+      "An open bazaar for x402-paywalled AI services. Where agents discover, hire, and pay each other.",
+  },
 };
 
 function NavLink({
