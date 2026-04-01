@@ -43,32 +43,43 @@ export default function RunPage() {
   }, [task, running]);
 
   return (
-    <div>
+    <div className="animate-fade-in">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Run Pipeline</h1>
-        <p className="text-[var(--text-muted)]">
-          Describe a task and the orchestrator will plan and execute an agent
-          pipeline
+        <div className="flex items-baseline gap-4 mb-2">
+          <h1 className="text-3xl font-bold tracking-tight">Run Pipeline</h1>
+          <div className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+        <p className="text-xs text-[var(--text-muted)] font-mono">
+          Describe a task. The orchestrator plans and executes an agent pipeline.
         </p>
       </div>
 
-      {/* Task input */}
-      <div className="mb-6">
+      {/* Task input area */}
+      <div className="mb-8 border border-[var(--border)] glow-hover">
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-card)]">
+          <span className="text-[10px] tracking-[0.3em] uppercase text-[var(--text-dim)] font-mono">
+            Task Input
+          </span>
+          <span className="text-[10px] text-[var(--text-dim)] font-mono">
+            {task.length}/2000
+          </span>
+        </div>
         <textarea
           value={task}
           onChange={(e) => setTask(e.target.value)}
-          placeholder="Describe your task..."
-          rows={3}
+          placeholder="> Describe your task..."
+          rows={4}
           maxLength={2000}
-          className="w-full p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none resize-none"
+          className="w-full p-4 bg-[var(--bg)] text-[var(--text)] placeholder:text-[var(--text-dim)] focus:outline-none resize-none font-mono text-sm leading-relaxed"
         />
-        <div className="flex items-center justify-between mt-3">
+        <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--bg-card)] flex items-center justify-between">
           <div className="flex gap-2 flex-wrap">
             {EXAMPLE_TASKS.map((example, idx) => (
               <button
                 key={idx}
                 onClick={() => setTask(example)}
-                className="px-3 py-1 rounded-lg text-xs bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--bg-card-hover)] hover:text-[var(--text)] transition-colors truncate max-w-[250px]"
+                className="px-3 py-1 text-[10px] font-mono text-[var(--text-dim)] border border-[var(--border)] hover:border-[var(--accent-dim)] hover:text-[var(--accent)] transition-colors duration-200 truncate max-w-[220px] cursor-pointer"
               >
                 {example}
               </button>
@@ -77,16 +88,23 @@ export default function RunPage() {
           <button
             onClick={handleRun}
             disabled={!task.trim() || running}
-            className="px-6 py-2.5 rounded-lg bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-glow)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors ml-4 shrink-0"
+            className="px-6 py-2 bg-[var(--accent)] text-black font-bold text-xs tracking-widest uppercase hover:bg-[var(--accent-glow)] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 ml-4 shrink-0 cursor-pointer"
           >
-            {running ? "Running..." : "Run Pipeline ($0.15)"}
+            {running ? (
+              <span className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-black rounded-full animate-pulse-glow" />
+                Running
+              </span>
+            ) : (
+              "Execute — $0.15"
+            )}
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl border border-[var(--error)]/30 bg-[var(--error)]/5 mb-6">
-          <p className="text-sm text-[var(--error)]">{error}</p>
+        <div className="p-4 border border-[var(--error)]/30 bg-[var(--error)]/5 mb-6 animate-slide-in">
+          <p className="text-xs font-mono text-[var(--error)]">{error}</p>
         </div>
       )}
 
@@ -94,7 +112,13 @@ export default function RunPage() {
       {steps.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <h2 className="font-semibold mb-4">Pipeline Steps</h2>
+            <div className="flex items-baseline gap-4 mb-4">
+              <h2 className="font-semibold text-sm tracking-wide">Pipeline Steps</h2>
+              <div className="h-px flex-1 bg-[var(--border)]" />
+              <span className="text-[10px] font-mono text-[var(--text-dim)]">
+                {steps.length} steps
+              </span>
+            </div>
             <PipelineViz steps={steps} />
           </div>
 
@@ -111,14 +135,18 @@ export default function RunPage() {
                   }))}
                 />
 
-                <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)]">
-                  <h3 className="font-semibold text-sm mb-3">Final Output</h3>
-                  <pre className="text-xs overflow-x-auto max-h-80 bg-black/30 rounded-lg p-3">
+                <div className="border border-[var(--border)] bg-[var(--bg-card)]">
+                  <div className="px-4 py-2 border-b border-[var(--border)] flex items-center justify-between">
+                    <h3 className="text-[10px] tracking-[0.3em] uppercase text-[var(--text-dim)] font-mono">
+                      Output
+                    </h3>
+                    <span className="text-[10px] font-mono text-[var(--text-dim)]">
+                      {result.duration_ms}ms
+                    </span>
+                  </div>
+                  <pre className="text-xs overflow-x-auto max-h-80 p-4 font-mono text-[var(--text-muted)] leading-relaxed">
                     {JSON.stringify(result.final_output, null, 2)}
                   </pre>
-                  <p className="text-xs text-[var(--text-muted)] mt-3">
-                    Total duration: {result.duration_ms}ms
-                  </p>
                 </div>
               </>
             )}
@@ -127,10 +155,10 @@ export default function RunPage() {
       )}
 
       {!running && steps.length === 0 && !error && (
-        <div className="text-center py-20 text-[var(--text-muted)]">
-          <p className="text-lg mb-2">No pipeline running</p>
-          <p className="text-sm">
-            Enter a task above and click &quot;Run Pipeline&quot; to get started
+        <div className="text-center py-24 text-[var(--text-dim)]">
+          <p className="font-mono text-xs tracking-widest uppercase mb-2">Awaiting Input</p>
+          <p className="text-[10px] font-mono">
+            Enter a task and execute to begin
           </p>
         </div>
       )}

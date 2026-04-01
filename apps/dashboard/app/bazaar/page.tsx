@@ -39,24 +39,34 @@ export default function BazaarPage() {
   const healthyCount = services.filter((s) => s.healthy).length;
 
   return (
-    <div>
+    <div className="animate-fade-in">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Service Bazaar</h1>
-        <p className="text-[var(--text-muted)]">
-          {services.length} services registered &middot; {healthyCount} healthy
-        </p>
+        <div className="flex items-baseline gap-4 mb-2">
+          <h1 className="text-3xl font-bold tracking-tight">Service Bazaar</h1>
+          <div className="h-px flex-1 bg-[var(--border)]" />
+        </div>
+        <div className="flex items-center gap-4 text-xs font-mono text-[var(--text-muted)]">
+          <span>
+            <span className="text-[var(--accent)]">{services.length}</span> registered
+          </span>
+          <span className="text-[var(--text-dim)]">/</span>
+          <span>
+            <span className="text-[var(--success)]">{healthyCount}</span> healthy
+          </span>
+        </div>
       </div>
 
       {/* Category filters */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-1 mb-8 flex-wrap">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setFilter(cat)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 text-xs font-mono tracking-wide uppercase transition-all duration-200 cursor-pointer border ${
               filter === cat
-                ? "bg-[var(--accent)] text-white"
-                : "bg-[var(--bg-card)] text-[var(--text-muted)] hover:bg-[var(--bg-card-hover)] border border-[var(--border)]"
+                ? "bg-[var(--accent)] text-black border-[var(--accent)] font-semibold"
+                : "bg-transparent text-[var(--text-muted)] border-[var(--border)] hover:border-[var(--accent-dim)] hover:text-[var(--accent)]"
             }`}
           >
             {cat}
@@ -65,23 +75,29 @@ export default function BazaarPage() {
       </div>
 
       {loading && (
-        <div className="text-center py-20 text-[var(--text-muted)]">
-          Loading services...
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border)]">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-[var(--bg)] p-5">
+              <div className="skeleton h-4 w-32 mb-3 rounded" />
+              <div className="skeleton h-3 w-full mb-2 rounded" />
+              <div className="skeleton h-3 w-24 rounded" />
+            </div>
+          ))}
         </div>
       )}
 
       {error && (
-        <div className="text-center py-20">
-          <p className="text-[var(--error)] mb-2">Failed to load services</p>
-          <p className="text-sm text-[var(--text-muted)]">{error}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-2">
-            Make sure the Bazaar server is running on port 3001
+        <div className="border border-[var(--error)]/30 bg-[var(--error)]/5 p-6 text-center">
+          <p className="text-[var(--error)] text-sm mb-1 font-medium">Failed to load services</p>
+          <p className="text-xs text-[var(--text-muted)]">{error}</p>
+          <p className="text-[10px] text-[var(--text-dim)] mt-2 font-mono">
+            Bazaar server expected on port 3001
           </p>
         </div>
       )}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border)] border border-[var(--border)]">
           {filtered.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}
@@ -90,7 +106,9 @@ export default function BazaarPage() {
 
       {!loading && !error && filtered.length === 0 && (
         <div className="text-center py-20 text-[var(--text-muted)]">
-          No services found for category &quot;{filter}&quot;
+          <p className="font-mono text-sm">
+            No services for <span className="text-[var(--accent)]">{filter}</span>
+          </p>
         </div>
       )}
     </div>
