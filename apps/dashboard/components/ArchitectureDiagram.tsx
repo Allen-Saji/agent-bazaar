@@ -207,8 +207,8 @@ export default function ArchitectureDiagram() {
         {[
           { x: 100, y: 28, text: "01 REQUEST", delay: 0.3 },
           { x: 580, y: 28, text: "02 DISCOVER", delay: 0.7 },
-          { x: 260, y: 195, text: "03 PLAN", delay: 1.0 },
-          { x: 420, y: 310, text: "04 EXECUTE + PAY", delay: 1.4 },
+          { x: 520, y: 195, text: "03 PLAN", delay: 1.0 },
+          { x: 540, y: 310, text: "04 EXECUTE + PAY", delay: 1.4 },
         ].map((s) => (
           <motion.text
             key={s.text} x={s.x} y={s.y}
