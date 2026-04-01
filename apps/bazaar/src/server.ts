@@ -5,7 +5,9 @@ import { PORTS } from "@agent-bazaar/common";
 import registerRoutes from "./routes/register.js";
 import discoverRoutes from "./routes/discover.js";
 import crawlRoutes from "./routes/crawl.js";
-import { seedDemoAgents, crawlXlm402 } from "./seed.js";
+import skillCrawlRoutes from "./routes/skill-crawl.js";
+import reputationRoutes from "./routes/reputation.js";
+import { crawlXlm402 } from "./seed.js";
 import { getDb } from "./db.js";
 
 const app = express();
@@ -24,6 +26,8 @@ app.get("/health", (_req, res) => {
 app.use(registerRoutes);
 app.use(discoverRoutes);
 app.use(crawlRoutes);
+app.use(skillCrawlRoutes);
+app.use(reputationRoutes);
 
 // Initialize DB and seed
 getDb();
@@ -31,12 +35,11 @@ getDb();
 app.listen(PORT, async () => {
   console.log(`[bazaar] Registry running on http://localhost:${PORT}`);
 
-  // Seed demo agents and crawl xlm402 on startup
+  // Crawl xlm402 on startup (agents self-register now)
   try {
-    await seedDemoAgents();
     await crawlXlm402();
   } catch (err) {
-    console.error("[bazaar] Seeding error:", err);
+    console.error("[bazaar] Crawl error:", err);
   }
 });
 

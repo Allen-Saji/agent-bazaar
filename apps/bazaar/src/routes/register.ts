@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { registerService } from "../db.js";
+import { upsertServiceByUrl } from "../db.js";
 
 const router = Router();
 
@@ -27,7 +27,7 @@ router.post("/register", (req: Request, res: Response) => {
     return;
   }
 
-  const id = registerService({
+  const id = upsertServiceByUrl(url, path, {
     url,
     path,
     method: method || "POST",
