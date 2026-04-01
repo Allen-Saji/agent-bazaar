@@ -1,4 +1,6 @@
 import Link from "next/link";
+import ArchitectureDiagram from "../components/ArchitectureDiagram";
+import FlowDiagram from "../components/FlowDiagram";
 
 function SectionLabel({ number, label }: { number: string; label: string }) {
   return (
@@ -128,6 +130,12 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ——— PIPELINE FLOW ——— */}
+      <section className="max-w-7xl mx-auto px-6 pb-20 md:pb-28">
+        <SectionLabel number="01.1" label="Pipeline Flow" />
+        <FlowDiagram />
+      </section>
+
       <div className="border-t border-[var(--border)]" />
 
       {/* ——— FOR AGENTS ——— */}
@@ -175,54 +183,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-6 py-20 md:py-28">
         <SectionLabel number="03" label="Architecture" />
         <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6 md:p-10">
-          <pre className="font-mono text-xs md:text-sm leading-loose text-[var(--text-muted)] overflow-x-auto">
-            <code>
-              {`User/Agent `}
-              <span className="text-[var(--accent)]">---</span>
-              {`( x402 )`}
-              <span className="text-[var(--accent)]">---&gt;</span>
-              {` Orchestrator `}
-              <span className="text-[var(--accent)]">---&gt;</span>
-              {` Bazaar Registry
-                                     `}
-              <span className="text-[var(--accent)]">|</span>
-              {`
-                                     `}
-              <span className="text-[var(--accent)]">v</span>
-              {`
-                     `}
-              <span className="text-[var(--accent)]">+----------+----------+----------+----------+</span>
-              {`
-                     `}
-              <span className="text-[var(--text)]">|</span>
-              {`  Search  `}
-              <span className="text-[var(--text)]">|</span>
-              {` Summarize`}
-              <span className="text-[var(--text)]">|</span>
-              {` Sentiment`}
-              <span className="text-[var(--text)]">|</span>
-              {`  Format  `}
-              <span className="text-[var(--text)]">|</span>
-              {`
-                     `}
-              <span className="text-[var(--accent)]">|</span>
-              {`  $0.02   `}
-              <span className="text-[var(--accent)]">|</span>
-              {`   $0.04  `}
-              <span className="text-[var(--accent)]">|</span>
-              {`   $0.02  `}
-              <span className="text-[var(--accent)]">|</span>
-              {`  $0.02   `}
-              <span className="text-[var(--accent)]">|</span>
-              {`
-                     `}
-              <span className="text-[var(--accent)]">+----------+----------+----------+----------+</span>
-              {`
-
-                          `}
-              <span className="text-[var(--accent)]">Every hop pays USDC on Stellar</span>
-            </code>
-          </pre>
+          <ArchitectureDiagram />
         </div>
       </section>
 
