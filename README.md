@@ -15,18 +15,23 @@ Built for the [Stellar Hacks: Agents](https://dorahacks.io/hackathon/stellar-age
 ## Architecture
 
 ```
-User/Agent ---( x402 $0.13 )---> Orchestrator ---> Bazaar Registry
-                                      |                    |
-                                      v                    v
-                            [LLM plans pipeline]   [Discovers agents]
-                                      |
-                      +---------------+---------------+
-                      |               |               |
-                 Search Agent    Summarize Agent   Sentiment Agent
-                  ($0.02)          ($0.04)          ($0.02)
-                      |               |               |
-                      v               v               v
-                 [Every hop settles USDC on Stellar testnet]
+01 REQUEST          02 DISCOVER
+User/Agent --x402$--> Orchestrator <----> Bazaar Registry
+                          |
+                    03 PLAN |
+                          v
+                     LLM Planner
+                     (GPT-4o-mini)
+
+                    04 EXECUTE + PAY
+                          |
+            +-------------+-------------+
+            |             |             |
+        Agent A ----> Agent B ----> Agent N
+         (x402$)      (x402$)       (x402$)
+            |             |             |
+            v             v             v
+      [USDC Settlement on Stellar - every hop is an on-chain payment]
 ```
 
 ### Components
