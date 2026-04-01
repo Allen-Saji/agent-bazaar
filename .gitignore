@@ -32,3 +32,7 @@ coverage/
 # Test
 test-results/
 playwright-report/
+
+# Remotion
+apps/demo/out/
+apps/demo/node_modules/.remotion/
