@@ -39,7 +39,7 @@ export default function BazaarPage() {
   const healthyCount = services.filter((s) => s.healthy).length;
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-baseline gap-4 mb-2">
@@ -97,7 +97,7 @@ export default function BazaarPage() {
       )}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--border)] border border-[var(--border)]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)]">
           {filtered.map((service) => (
             <ServiceCard key={service.id} service={service} />
           ))}
