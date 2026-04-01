@@ -21,7 +21,6 @@ User/Agent --x402$--> Orchestrator <----> Bazaar Registry
                     03 PLAN |
                           v
                      LLM Planner
-                     (GPT-4o-mini)
 
                     04 EXECUTE + PAY
                           |

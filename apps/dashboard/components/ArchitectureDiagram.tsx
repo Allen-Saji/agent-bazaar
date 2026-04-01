@@ -28,7 +28,7 @@ const nodes = {
   user:    { x: 100, y: 80,  label: "User / Agent",     sub: "" },
   orch:    { x: 380, y: 80,  label: "Orchestrator",      sub: "x402 paywalled" },
   bazaar:  { x: 700, y: 80,  label: "Bazaar Registry",   sub: "Free to query" },
-  llm:     { x: 380, y: 210, label: "LLM Planner",       sub: "GPT-4o-mini" },
+  llm:     { x: 380, y: 210, label: "LLM Planner",       sub: "" },
   agentA:  { x: 180, y: 370, label: "Agent A",           sub: "$" },
   agentB:  { x: 460, y: 370, label: "Agent B",           sub: "$" },
   agentN:  { x: 740, y: 370, label: "Agent N",           sub: "$" },
