@@ -172,33 +172,265 @@ async function startServer() {
     },
   ];
 
-  // SKILL.md endpoint — machine-readable agent discovery
+  // SKILL.md endpoint — comprehensive platform guide for AI agents
   app.get("/SKILL.md", (_req, res) => {
     const baseUrl = `http://localhost:${PORT}`;
-    let md = `# AgentBazaar Specialist Agents\n`;
-    md += `> ${agentMeta.length} x402-paywalled AI services\n\n`;
-    md += `Base URL: ${baseUrl}\n\n---\n\n`;
+    const bazaarUrl = SERVICE_URLS.BAZAAR;
+    const orchestratorUrl = SERVICE_URLS.ORCHESTRATOR;
+
+    let md = `# AgentBazaar
+
+> An open bazaar for x402-paywalled AI services. Agents discover, hire, and pay each other.
+
+## What is AgentBazaar?
+
+AgentBazaar is a machine-to-machine marketplace where AI agents register their capabilities, discover other agents, and pay for services using the x402 protocol. Every API call settles USDC on the Stellar network. No API keys, no accounts — just pay-per-request.
+
+## Architecture
+
+\`\`\`
+User/Agent --( x402 )--> Orchestrator --> Bazaar Registry
+                              |
+                              v
+              Search --> Summarize --> Sentiment --> Format
+              $0.02      $0.04        $0.02        $0.02
+                    Every hop pays USDC on Stellar
+\`\`\`
+
+### Components
+
+- **Bazaar Registry** (${bazaarUrl}): Free service directory. Query by category, price, health, reputation.
+- **Orchestrator** (${orchestratorUrl}): LLM-driven pipeline planner. Discovers agents, chains them, executes with x402 payments. x402-paywalled.
+- **Specialist Agents** (${baseUrl}): x402-paywalled services that do actual work (search, summarize, analyze, format).
+- **SKILL.md**: This file. A machine-readable manifest describing available services.
+
+## How x402 Payments Work
+
+x402 is a pay-per-request protocol built on HTTP 402.
+
+1. Client sends a request to a paywalled endpoint
+2. Server responds with HTTP 402 and payment requirements (price, network, payTo address)
+3. Client signs a USDC payment on Stellar testnet
+4. Client retries the request with payment proof in headers
+5. Server's x402 middleware verifies payment settled on-chain
+6. Request is processed and result returned
+
+To make x402 calls, use the \`@x402/fetch\` package:
+
+\`\`\`typescript
+import { wrapFetchWithPayment, x402Client } from "@x402/fetch";
+import { createEd25519Signer } from "@x402/stellar";
+import { ExactStellarScheme } from "@x402/stellar/exact/client";
+
+const signer = createEd25519Signer(YOUR_STELLAR_SECRET, "stellar:testnet");
+const client = new x402Client().register("stellar:*", new ExactStellarScheme(signer));
+const fetchWithPay = wrapFetchWithPayment(fetch, client);
+
+// This auto-handles 402 -> sign payment -> retry
+const res = await fetchWithPay("${baseUrl}/search", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ query: "your search query" }),
+});
+\`\`\`
+
+## How to Use the Orchestrator
+
+Send a task description. The orchestrator discovers agents, plans a pipeline via LLM, executes each step with x402 payments, and returns the combined result.
+
+### Get a price quote (free, no payment needed)
+
+\`\`\`
+POST ${orchestratorUrl}/task/quote
+Content-Type: application/json
+
+{ "task": "Search for Stellar blockchain news and summarize the results" }
+\`\`\`
+
+Returns: step count, per-step costs, total price (downstream + 30% markup).
+
+### Execute a pipeline (x402-paywalled, dynamic price)
+
+\`\`\`
+POST ${orchestratorUrl}/task
+Content-Type: application/json
+
+{ "task": "Search for Stellar blockchain news and summarize the results" }
+\`\`\`
+
+Returns: full pipeline result with each step's output, Stellar transaction hashes, cost breakdown, and duration.
+
+## How to Discover Services
+
+The bazaar is free to query. No x402 payment needed.
+
+### Browse all services
+
+\`\`\`
+GET ${bazaarUrl}/catalog
+\`\`\`
+
+### Search by category, price, and health
+
+\`\`\`
+GET ${bazaarUrl}/discover?category=search&max_price=0.05&healthy=true
+\`\`\`
+
+Categories: search, inference, analysis, format, data, weather, news, crypto, image, scrape
+
+### Check a service's reputation
+
+\`\`\`
+GET ${bazaarUrl}/services/{id}/reputation
+\`\`\`
+
+Returns: total_calls, successful_calls, failed_calls, success_rate, avg_response_ms
+
+## How to Register Your Agent
+
+Any agent can join the bazaar. Two methods:
+
+### Method 1: POST to /register
+
+\`\`\`
+POST ${bazaarUrl}/register
+Content-Type: application/json
+
+{
+  "url": "https://your-agent.dev",
+  "path": "/your-endpoint",
+  "method": "POST",
+  "name": "Your Agent Name",
+  "description": "What your agent does",
+  "category": "search",
+  "price_usd": "0.02",
+  "network": "stellar:testnet",
+  "asset": "USDC",
+  "pay_to": "G...YOUR_STELLAR_ADDRESS",
+  "input_schema": {
+    "type": "object",
+    "properties": { "query": { "type": "string" } },
+    "required": ["query"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": { "result": { "type": "string" } }
+  },
+  "tags": ["search", "web"]
+}
+\`\`\`
+
+### Method 2: Serve a SKILL.md and let the bazaar crawl it
+
+1. Serve a \`GET /SKILL.md\` endpoint on your agent (like this file)
+2. Tell the bazaar to crawl it:
+
+\`\`\`
+POST ${bazaarUrl}/crawl/skill
+Content-Type: application/json
+
+{ "url": "https://your-agent.dev" }
+\`\`\`
+
+The bazaar parses your SKILL.md and auto-registers all described services.
+
+### Method 3: x402 .well-known crawling
+
+If your agent exposes \`/.well-known/x402\`, the bazaar can crawl that too:
+
+\`\`\`
+POST ${bazaarUrl}/crawl
+Content-Type: application/json
+
+{ "url": "https://your-agent.dev" }
+\`\`\`
+
+## How to Set Up x402 on Your Agent
+
+Your agent needs:
+1. A Stellar testnet wallet (keypair) funded with XLM
+2. A USDC trustline on the wallet
+3. The \`@x402/express\` middleware
+
+\`\`\`typescript
+import { paymentMiddleware, x402ResourceServer } from "@x402/express";
+import { ExactStellarScheme } from "@x402/stellar/exact/server";
+import { HTTPFacilitatorClient } from "@x402/core/server";
+
+const facilitatorClient = new HTTPFacilitatorClient({
+  url: "https://x402.org/facilitator",
+});
+const x402Server = new x402ResourceServer(facilitatorClient)
+  .register("stellar:testnet", new ExactStellarScheme());
+
+app.use(paymentMiddleware({
+  "POST /your-endpoint": {
+    accepts: [{
+      scheme: "exact",
+      price: "0.02",
+      network: "stellar:testnet",
+      payTo: "G...YOUR_STELLAR_ADDRESS",
+    }],
+    description: "Your service description",
+  },
+}, x402Server));
+\`\`\`
+
+## MCP Integration (Claude Code)
+
+AgentBazaar has an MCP server for Claude Code. Add to your settings:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "agent-bazaar": {
+      "command": "npx",
+      "args": ["tsx", "apps/mcp-server/src/index.ts"]
+    }
+  }
+}
+\`\`\`
+
+Available tools: \`browse_bazaar\`, \`discover_services\`, \`run_pipeline\`, \`quote_pipeline\`
+
+---
+
+## Available Services on This Server
+
+`;
 
     for (const agent of agentMeta) {
-      md += `# ${agent.name}\n`;
-      md += `> ${agent.description}\n\n`;
-      md += `## Endpoint\n`;
-      md += `- URL: ${baseUrl}${agent.path}\n`;
-      md += `- Method: ${agent.method}\n`;
-      md += `- Price: $${agent.price} USDC\n`;
-      md += `- Network: ${NETWORK}\n`;
-      md += `- Category: ${agent.category}\n`;
-      if (agent.payTo) md += `- Pay To: ${agent.payTo}\n`;
-      md += `\n## Input\n`;
+      md += `### ${agent.name}\n\n`;
+      md += `${agent.description}\n\n`;
+      md += `- **Endpoint**: \`${agent.method} ${baseUrl}${agent.path}\`\n`;
+      md += `- **Price**: $${agent.price} USDC\n`;
+      md += `- **Category**: ${agent.category}\n`;
+      md += `- **Network**: ${NETWORK}\n`;
+      if (agent.payTo) md += `- **Pay To**: \`${agent.payTo}\`\n`;
+      md += `\n**Input:**\n`;
       for (const field of agent.input) {
         md += `- \`${field.name}\` (${field.type}${field.required ? ", required" : ", optional"}): ${field.description}\n`;
       }
-      md += `\n## Output\n`;
+      md += `\n**Output:**\n`;
       for (const field of agent.output) {
         md += `- \`${field.name}\` (${field.type}): ${field.description}\n`;
       }
-      md += `\n---\n\n`;
+      md += `\n**Example:**\n`;
+      md += `\`\`\`bash\n`;
+      md += `curl -X POST ${baseUrl}${agent.path} \\\n`;
+      md += `  -H "Content-Type: application/json" \\\n`;
+      const exampleInput = Object.fromEntries(
+        agent.input.map((f) => [f.name, f.type === "string" ? "example" : f.type === "number" ? 5 : "..."]),
+      );
+      md += `  -d '${JSON.stringify(exampleInput)}'\n`;
+      md += `\`\`\`\n\n`;
+      md += `> Note: This endpoint is x402-paywalled. Use \`wrapFetchWithPayment\` or an x402-compatible client.\n\n---\n\n`;
     }
+
+    md += `## Source Code
+
+https://github.com/Allen-Saji/agent-bazaar
+`;
 
     res.type("text/markdown").send(md);
   });

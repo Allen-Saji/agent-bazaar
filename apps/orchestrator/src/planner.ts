@@ -16,6 +16,7 @@ Rules:
 3. The first step must use literal values or the user's task as input.
 4. Return valid JSON only.
 5. CRITICAL: Match the exact input field names and types from each service's input_schema.
+9. When multiple services exist in the same category, prefer the one with higher success_rate and more total_calls. If reputation data is not available, prefer the cheapest.
    - If a field expects a "string" but the previous step's output is an array/object, you MUST use {{step_N_output}} which will be auto-stringified. Do NOT reference .results when passing to a string field — the whole output object will be JSON-stringified automatically.
 6. For the Summarize Agent: "text" must be a string. Pass the entire previous step output as "{{step_N_output}}" — it will be auto-converted to a string representation.
 7. For the Sentiment Agent: "text" must be a string. Same rule as above.
@@ -47,15 +48,27 @@ export async function planPipeline(
   task: string,
   catalog: BazaarEntry[],
 ): Promise<{ steps: PlannedStep[]; reasoning: string }> {
-  const catalogSummary = catalog.map((s) => ({
-    id: s.id,
-    name: s.name,
-    description: s.description,
-    category: s.category,
-    price_usd: s.price_usd,
-    input_schema: s.input_schema,
-    output_schema: s.output_schema,
-  }));
+  const catalogSummary = catalog.map((s) => {
+    const entry: Record<string, unknown> = {
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      category: s.category,
+      price_usd: s.price_usd,
+      input_schema: s.input_schema,
+      output_schema: s.output_schema,
+    };
+    // Include reputation data if available so LLM can pick better agents
+    const sAny = s as unknown as Record<string, unknown>;
+    const totalCalls = sAny.total_calls as number | undefined;
+    if (totalCalls && totalCalls > 0) {
+      const successfulCalls = sAny.successful_calls as number;
+      entry.success_rate = `${Math.round((successfulCalls / totalCalls) * 100)}%`;
+      entry.total_calls = totalCalls;
+      entry.avg_response_ms = sAny.avg_response_ms;
+    }
+    return entry;
+  });
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
