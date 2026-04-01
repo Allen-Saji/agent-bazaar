@@ -20,33 +20,65 @@ interface ParsedAgent {
 
 function parseSkillMd(markdown: string, baseUrl: string): ParsedAgent[] {
   const agents: ParsedAgent[] = [];
-  // Split by top-level headings (# Name), skip the first section (header)
-  const sections = markdown.split(/^# /m).filter((s) => s.trim());
 
-  for (const section of sections) {
+  // Find the "Available Services" section or similar
+  // Then split by ### headings (individual agents)
+  const servicesSectionMatch = markdown.match(
+    /^## Available Services.*$/m,
+  );
+  const servicesStart = servicesSectionMatch
+    ? markdown.indexOf(servicesSectionMatch[0])
+    : 0;
+  const servicesText = markdown.slice(servicesStart);
+
+  // Split by ### headings
+  const agentSections = servicesText.split(/^### /m).filter((s) => s.trim());
+
+  for (const section of agentSections) {
     const lines = section.split("\n");
     const name = lines[0]?.trim();
     if (!name) continue;
 
-    // Skip if this is a header section (contains "Base URL")
-    if (section.includes("Base URL:")) continue;
+    // Skip section headers that aren't agent names (e.g., "Components", "Method 1:")
+    if (name.startsWith("Available Services") || name.startsWith("Component")) continue;
 
-    const description =
-      lines.find((l) => l.startsWith("> "))?.replace(/^>\s*/, "") || "";
+    // Description is the first non-empty line after the heading
+    const description = lines.find(
+      (l, i) => i > 0 && l.trim() && !l.startsWith("-") && !l.startsWith("*") && !l.startsWith("#") && !l.startsWith(">") && !l.startsWith("```"),
+    )?.trim() || "";
 
-    // Parse endpoint section
-    const url =
-      extractField(section, "URL") || baseUrl;
-    const path = new URL(url).pathname || "/";
-    const method = extractField(section, "Method") || "POST";
-    const price = extractField(section, "Price")?.replace(/[^0-9.]/g, "") || "0.01";
-    const network = extractField(section, "Network") || "stellar:testnet";
-    const category = extractField(section, "Category") || "data";
-    const payTo = extractField(section, "Pay To") || "";
+    // Parse fields — supports both "- **Field**: `value`" and "- Field: value" formats
+    const endpoint = extractBoldField(section, "Endpoint") || "";
+    const endpointMatch = endpoint.match(/`?(\w+)\s+(https?:\/\/\S+)`?/);
+    const method = endpointMatch?.[1] || extractField(section, "Method") || "POST";
+    const fullUrl = endpointMatch?.[2] || extractField(section, "URL") || "";
 
-    // Parse input fields
-    const inputFields = parseFields(section, "## Input");
-    const outputFields = parseFields(section, "## Output");
+    let url = baseUrl;
+    let path = "/";
+    if (fullUrl) {
+      try {
+        const parsed = new URL(fullUrl);
+        url = `${parsed.protocol}//${parsed.host}`;
+        path = parsed.pathname;
+      } catch {
+        // If URL parsing fails, try to extract path
+        path = fullUrl.replace(baseUrl, "") || "/";
+      }
+    }
+
+    // Skip if no valid endpoint found
+    if (path === "/" && !fullUrl) continue;
+
+    const priceRaw = extractBoldField(section, "Price") || extractField(section, "Price") || "";
+    const price = priceRaw.replace(/[^0-9.]/g, "") || "0.01";
+    const network = extractBoldField(section, "Network") || extractField(section, "Network") || "stellar:testnet";
+    const category = extractBoldField(section, "Category") || extractField(section, "Category") || "data";
+    const payToRaw = extractBoldField(section, "Pay To") || extractField(section, "Pay To") || "";
+    const payTo = payToRaw.replace(/`/g, "").trim();
+
+    // Parse input/output fields
+    const inputFields = parseFields(section, "**Input:**");
+    const outputFields = parseFields(section, "**Output:**");
 
     const inputSchema = inputFields.length > 0
       ? {
@@ -70,7 +102,7 @@ function parseSkillMd(markdown: string, baseUrl: string): ParsedAgent[] {
     agents.push({
       name,
       description,
-      url: url.replace(path, ""),
+      url,
       path,
       method,
       price,
@@ -86,7 +118,14 @@ function parseSkillMd(markdown: string, baseUrl: string): ParsedAgent[] {
   return agents;
 }
 
+function extractBoldField(text: string, field: string): string | undefined {
+  // Matches "- **Field**: value" or "- **Field**: `value`"
+  const regex = new RegExp(`^-\\s*\\*\\*${field}\\*\\*:\\s*(.+)$`, "m");
+  return regex.exec(text)?.[1]?.trim();
+}
+
 function extractField(text: string, field: string): string | undefined {
+  // Matches "- Field: value"
   const regex = new RegExp(`^-\\s*${field}:\\s*(.+)$`, "m");
   return regex.exec(text)?.[1]?.trim();
 }
@@ -99,7 +138,8 @@ function parseFields(
   if (sectionIdx === -1) return [];
 
   const afterSection = text.slice(sectionIdx + sectionHeader.length);
-  const nextSection = afterSection.indexOf("\n## ");
+  // Stop at next section header or code block
+  const nextSection = afterSection.search(/\n(\*\*\w|###|```|---)/);
   const block = nextSection > -1 ? afterSection.slice(0, nextSection) : afterSection;
 
   const fields: Array<{ name: string; type: string; required: boolean }> = [];
