@@ -50,10 +50,10 @@ interface Arrow {
 const arrows: Arrow[] = [
   { id: "a1", from: "user",   to: "orch",   label: "x402 $",         delay: 0.5 },
   { id: "a2", from: "orch",   to: "bazaar", label: "discover",       delay: 0.8, bidirectional: true },
-  { id: "a3", from: "orch",   to: "llm",    label: "plan",           delay: 1.1 },
-  { id: "a4", from: "orch",   to: "agentA", label: "x402 $",         delay: 1.5 },
-  { id: "a5", from: "orch",   to: "agentB", label: "x402 $",         delay: 1.7 },
-  { id: "a6", from: "orch",   to: "agentN", label: "x402 $",         delay: 1.9 },
+  { id: "a3", from: "orch",   to: "llm",    label: "",               delay: 1.1 },
+  { id: "a4", from: "orch",   to: "agentA", label: "",               delay: 1.5 },
+  { id: "a5", from: "orch",   to: "agentB", label: "",               delay: 1.7 },
+  { id: "a6", from: "orch",   to: "agentN", label: "",               delay: 1.9 },
   // chaining arrows between agents
   { id: "c1", from: "agentA", to: "agentB", label: "output",         delay: 2.2, color: C.muted },
   { id: "c2", from: "agentB", to: "agentN", label: "output",         delay: 2.4, color: C.muted },
@@ -206,9 +206,9 @@ export default function ArchitectureDiagram() {
         {/* step labels */}
         {[
           { x: 100, y: 28, text: "01 REQUEST", delay: 0.3 },
-          { x: 540, y: 28, text: "02 DISCOVER", delay: 0.7 },
-          { x: 380, y: 170, text: "03 PLAN", delay: 1.0 },
-          { x: 460, y: 300, text: "04 EXECUTE + PAY", delay: 1.4 },
+          { x: 580, y: 28, text: "02 DISCOVER", delay: 0.7 },
+          { x: 260, y: 195, text: "03 PLAN", delay: 1.0 },
+          { x: 420, y: 310, text: "04 EXECUTE + PAY", delay: 1.4 },
         ].map((s) => (
           <motion.text
             key={s.text} x={s.x} y={s.y}
