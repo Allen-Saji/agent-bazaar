@@ -28,3 +28,7 @@ npm-debug.log*
 # Build
 out/
 coverage/
+
+# Test
+test-results/
+playwright-report/
